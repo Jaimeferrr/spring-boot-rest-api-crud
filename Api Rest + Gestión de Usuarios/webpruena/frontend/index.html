@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Control - Usuarios</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+    <h2>Gestión de Usuarios</h2>
+    <button onclick="logout()">Cerrar Sesión</button>
+</nav>
+
+<div class="container">
+    <h3>Lista de Usuarios Registrados</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Email</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody id="listaUsuarios">
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Verificación: si no hay nombre guardado, al login
+    if (!localStorage.getItem('nombreUsuario')) {
+        window.location.href = 'login.html';
+    }
+
+    async function cargarUsuarios() {
+        try {
+            const response = await fetch('http://localhost:8080/api/usuarios');
+            const usuarios = await response.json();
+            const tabla = document.getElementById('listaUsuarios');
+
+            tabla.innerHTML = usuarios.map(u => `
+                <tr>
+                    <td>${u.id}</td>
+                    <td>${u.usuario}</td> <td>${u.email}</td>
+                    <td>
+                        <button class="btn-delete" onclick="eliminarUsuario(${u.id})">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (error) {
+            console.error("Error al cargar usuarios:", error);
+        }
+    }
+
+    async function eliminarUsuario(id) {
+        if (confirm("¿Estás seguro de eliminar este usuario?")) {
+            await fetch(`http://localhost:8080/api/usuarios/${id}`, {
+                method: 'DELETE'
+            });
+            cargarUsuarios(); // Recargamos la tabla
+        }
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    }
+
+    cargarUsuarios();
+</script>
+</body>
+</html>
